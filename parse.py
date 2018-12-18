@@ -54,10 +54,21 @@ for info_line, details_line in zip(lines[1::2], lines[2::2]):
     n = re.match(details_line_re, details_line)
     #this merges the two dictionaries into one
     edge = {**m.groupdict(), **n.groupdict()}
+    edge['weight'] = 1
     edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
     edges.append(edge_tuple)
 
 import networkx as nx
+import matplotlib.pyplot as plt
 
 G = nx.Graph()
 G.add_edges_from(edges)
+
+pos = nx.layout.spring_layout(G)
+
+nx.draw_networkx_nodes(G, pos, node_size=1)
+nx.draw_networkx_edges(G, pos, width=1)
+#nx.draw_networkx_labels(G, pos, font_size=1, font_family='sans-serif')
+
+plt.axis('off')
+plt.show()
