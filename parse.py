@@ -48,8 +48,16 @@ details_line_re = re.compile(
 )
 
 lines = file.readlines()
+edges = []
 for info_line, details_line in zip(lines[1::2], lines[2::2]):
     m = re.match(info_line_re, info_line)
-    print(m.groupdict())
-    m = re.match(details_line_re, details_line)
-    print(m.groupdict())
+    n = re.match(details_line_re, details_line)
+    #this merges the two dictionaries into one
+    edge = {**m.groupdict(), **n.groupdict()}
+    edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
+    edges.append(edge_tuple)
+
+import networkx as nx
+
+G = nx.Graph()
+G.add_edges_from(edges)
