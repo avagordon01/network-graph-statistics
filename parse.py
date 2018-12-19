@@ -6,6 +6,7 @@ import pickle
 file = open('ss.txt', 'r')
 
 info_line_re = re.compile(
+    r"(?P<state>\S{1,1})\s*"
     r"(?P<recv_q>\S+)\s+"
     r"(?P<send_q>\S+)\s+"
     r"(?P<local_addr>\S+)\s+"
