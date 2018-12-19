@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import re
 import pickle
 
@@ -61,6 +62,7 @@ def parse_users(users):
         m = re.match(user_re, user)
         if not m:
             print('failed to parse user: {}'.format(user))
+            sys.exit(1)
         ms.append(m.groupdict())
     return ms
 
@@ -70,10 +72,12 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
     info_m = re.match(info_line_re, info_line)
     if not info_m:
         print('failed to parse info line: {}'.format(info_line))
+        sys.exit(1)
     info = info_m.groupdict()
     details_m = re.match(details_line_re, details_line)
     if not details_m:
         print('failed to parse details line: {}'.format(details_line))
+        sys.exit(1)
     details = details_m.groupdict()
     users_str = info['users']
     interested = False
