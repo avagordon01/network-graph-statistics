@@ -54,7 +54,11 @@ lines = file.readlines()
 edges = []
 for info_line, details_line in zip(lines[0::2], lines[1::2]):
     m = re.match(info_line_re, info_line)
+    if not m:
+        print('failed to parse info line: {}'.format(info_line))
     n = re.match(details_line_re, details_line)
+    if not n:
+        print('failed to parse details line: {}'.format(details_line))
     #this merges the two dictionaries into one
     edge = {**m.groupdict(), **n.groupdict()}
     edge['weight'] = 1
