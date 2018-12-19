@@ -16,4 +16,6 @@ nx.draw_networkx_edges(G, pos, width=1)
 #nx.draw_networkx_labels(G, pos, font_size=1, font_family='sans-serif')
 
 plt.axis('off')
+plt.gcf().set_size_inches(32, 24)
+plt.savefig('graph.png', dpi=96)
 plt.show()
