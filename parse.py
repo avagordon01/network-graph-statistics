@@ -79,7 +79,8 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
         users = parse_users(users_str)
         for user in users:
             interested = user['name'] in ['1', '2', '3', '4', '5', '6']
-            break
+            if interested:
+                break
     if not interested:
         continue
     #this merges the two dictionaries into one
