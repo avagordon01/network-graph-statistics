@@ -50,7 +50,7 @@ details_line_re = re.compile(
 
 lines = file.readlines()
 edges = []
-for info_line, details_line in zip(lines[1::2], lines[2::2]):
+for info_line, details_line in zip(lines[0::2], lines[1::2]):
     m = re.match(info_line_re, info_line)
     n = re.match(details_line_re, details_line)
     #this merges the two dictionaries into one
