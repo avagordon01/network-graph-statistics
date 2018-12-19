@@ -67,13 +67,15 @@ def parse_users(users):
 lines = file.readlines()
 edges = []
 for info_line, details_line in zip(lines[0::2], lines[1::2]):
-    m = re.match(info_line_re, info_line)
-    if not m:
+    info_m = re.match(info_line_re, info_line)
+    if not info_m:
         print('failed to parse info line: {}'.format(info_line))
-    n = re.match(details_line_re, details_line)
-    if not n:
+    info = info_m.groupdict()
+    details_m = re.match(details_line_re, details_line)
+    if not details_m:
         print('failed to parse details line: {}'.format(details_line))
-    users_str = m.groupdict()['users']
+    details = details_m.groupdict()
+    users_str = info['users']
     interested = False
     if users_str:
         users = parse_users(users_str)
@@ -84,7 +86,7 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
     if not interested:
         continue
     #this merges the two dictionaries into one
-    edge = {**m.groupdict(), **n.groupdict()}
+    edge = {**info, **details}
     edge['weight'] = 1
     edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
     edges.append(edge_tuple)
