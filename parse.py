@@ -97,6 +97,9 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
                 break
     if not interested:
         continue
+    rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
+    rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
+    send_bandwidth = parse_bps(details['send'])
     #this merges the two dictionaries into one
     edge = {**info, **details}
     edge['weight'] = 1
