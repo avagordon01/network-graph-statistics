@@ -52,6 +52,18 @@ details_line_re = re.compile(
     r"minrtt:(?P<minrtt>\S+)"
 )
 
+user_re = re.compile(
+    r'"(?P<name>[^"]+)",pid=(?P<pid>\w+),fd=(?P<fd>\w+)'
+)
+def parse_users(users):
+    ms = []
+    for user in users[1:-1].split('),('):
+        m = re.match(user_re, user)
+        if not m:
+            print('failed to parse user: {}'.format(user))
+        ms.append(m.groupdict())
+    return ms
+
 lines = file.readlines()
 edges = []
 for info_line, details_line in zip(lines[0::2], lines[1::2]):
@@ -61,6 +73,9 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
     n = re.match(details_line_re, details_line)
     if not n:
         print('failed to parse details line: {}'.format(details_line))
+    users = m.groupdict()['users']
+    if users:
+        print(parse_users(users))
     #this merges the two dictionaries into one
     edge = {**m.groupdict(), **n.groupdict()}
     edge['weight'] = 1
