@@ -73,9 +73,15 @@ for info_line, details_line in zip(lines[0::2], lines[1::2]):
     n = re.match(details_line_re, details_line)
     if not n:
         print('failed to parse details line: {}'.format(details_line))
-    users = m.groupdict()['users']
-    if users:
-        print(parse_users(users))
+    users_str = m.groupdict()['users']
+    interested = False
+    if users_str:
+        users = parse_users(users_str)
+        for user in users:
+            interested = user['name'] in ['1', '2', '3', '4', '5', '6']
+            break
+    if not interested:
+        continue
     #this merges the two dictionaries into one
     edge = {**m.groupdict(), **n.groupdict()}
     edge['weight'] = 1
