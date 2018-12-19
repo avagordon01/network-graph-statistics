@@ -5,4 +5,4 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-parallel ssh {} "ss -H -tipa state connected exclude time-wait" ::: $@ > ss.txt
+parallel ssh {} "ss -H -tipa state connected exclude time-wait exclude fin-wait-2" ::: $@ > ss.txt
