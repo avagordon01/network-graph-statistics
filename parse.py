@@ -37,14 +37,16 @@ details_line_re = re.compile(
     r"(lastack:(?P<lastack>\S+)\s+|)"
     r"(pacing_rate (?P<pacing_rate>\S+)\s+|)"
     r"(delivery_rate (?P<delivery_rate>\S+)\s+|)"
-    r"(app_limited\s+|)"
+    r"(?P<app_limited>app_limited\s+|)"
     r"(busy:(?P<busy>\S+)\s+|)"
+    r"(sndbuf_limited:(?P<sndbuf_limited>\S+)\s+|)"
     r"(rwnd_limited:(?P<rwnd_limited>\S+)\s+|)"
     r"(retrans:(?P<retrans>\S+)\s+|)"
     r"(unacked:(?P<unacked>\S+)\s+|)"
     r"(rcv_rtt:(?P<rcv_rtt>\S+)\s+|)"
     r"rcv_space:(?P<rcv_space>\S+)\s+"
     r"rcv_ssthresh:(?P<rcv_ssthresh>\S+)\s+"
+    r"(notsent:(?P<notsent>\S+)\s+|)"
     r"minrtt:(?P<minrtt>\S+)"
 )
 
