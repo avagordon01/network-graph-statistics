@@ -5,8 +5,6 @@ import re
 import pickle
 from si_prefix import si_parse
 
-file = open('ss.txt', 'r')
-
 info_line_re = re.compile(
     r"(?P<state>\S{1,1})\s*"
     r"(?P<recv_q>\S+)\s+"
@@ -74,36 +72,41 @@ def parse_bps(bps_str):
     assert(bps_str.endswith('bps'))
     return si_parse(bps_str[:-3])
 
-lines = file.readlines()
-edges = []
-for info_line, details_line in zip(lines[0::2], lines[1::2]):
-    info_m = re.match(info_line_re, info_line)
-    if not info_m:
-        print('failed to parse info line: {}'.format(info_line))
-        sys.exit(1)
-    info = info_m.groupdict()
-    details_m = re.match(details_line_re, details_line)
-    if not details_m:
-        print('failed to parse details line: {}'.format(details_line))
-        sys.exit(1)
-    details = details_m.groupdict()
-    users_str = info['users']
-    interested = False
-    if users_str:
-        users = parse_users(users_str)
-        for user in users:
-            interested = user['name'] in ['1', '2', '3', '4', '5', '6']
-            if interested:
-                break
-    if not interested:
-        continue
-    rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
-    rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
-    send_bandwidth = parse_bps(details['send'])
-    #this merges the two dictionaries into one
-    edge = {**info, **details}
-    edge['weight'] = 1
-    edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
-    edges.append(edge_tuple)
+def main():
+    file = open('ss.txt', 'r')
+    lines = file.readlines()
+    edges = []
+    for info_line, details_line in zip(lines[0::2], lines[1::2]):
+        info_m = re.match(info_line_re, info_line)
+        if not info_m:
+            print('failed to parse info line: {}'.format(info_line))
+            sys.exit(1)
+        info = info_m.groupdict()
+        details_m = re.match(details_line_re, details_line)
+        if not details_m:
+            print('failed to parse details line: {}'.format(details_line))
+            sys.exit(1)
+        details = details_m.groupdict()
+        users_str = info['users']
+        interested = False
+        if users_str:
+            users = parse_users(users_str)
+            for user in users:
+                interested = user['name'] in ['1', '2', '3', '4', '5', '6']
+                if interested:
+                    break
+        if not interested:
+            continue
+        rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
+        rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
+        send_bandwidth = parse_bps(details['send'])
+        #this merges the two dictionaries into one
+        edge = {**info, **details}
+        edge['weight'] = rtt_avg
+        edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
+        edges.append(edge_tuple)
 
-pickle.dump(edges, open('edges.pickle', 'wb'))
+    pickle.dump(edges, open('edges.pickle', 'wb'))
+
+if __name__ == '__main__':
+    main()
