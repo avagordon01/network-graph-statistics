@@ -4,12 +4,11 @@ These python tools rely on `ss` (from iproute2) to read all/most TCP socket stat
 
 ## Usage
 
-Run an application you want to monitor.
+Run an application you want to monitor. Then
 
-```./collect.py```
+```./collect.sh HOSTS```
 
-will collect the network statistics into `ss.txt`
-(the ss.txt output can be merged simply with other ss.txt files (possibly collected from other machines at the same time) by stripping the first lines from all but one file and then appending the other files to the file with the header)
+will collect the network statistics from `HOSTS`
 
 ```./parse.py```
 
