@@ -3,6 +3,7 @@
 import sys
 import re
 import pickle
+from si_prefix import si_parse
 
 file = open('ss.txt', 'r')
 
@@ -69,6 +70,9 @@ def parse_users(users):
 def parse_rtt(rtt_str):
     s = rtt_str.split('/')
     return {'rtt_avg': float(s[0]), 'rtt_std_dev': float(s[1])}
+def parse_bps(bps_str):
+    assert(bps_str.endswith('bps'))
+    return si_parse(bps_str[:-3])
 
 lines = file.readlines()
 edges = []
