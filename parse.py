@@ -66,6 +66,10 @@ def parse_users(users):
         ms.append(m.groupdict())
     return ms
 
+def parse_rtt(rtt_str):
+    s = rtt_str.split('/')
+    return {'rtt_avg': float(s[0]), 'rtt_std_dev': float(s[1])}
+
 lines = file.readlines()
 edges = []
 for info_line, details_line in zip(lines[0::2], lines[1::2]):
