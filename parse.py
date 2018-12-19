@@ -44,6 +44,7 @@ details_line_re = re.compile(
     r"(sndbuf_limited:(?P<sndbuf_limited>\S+)\s+|)"
     r"(unacked:(?P<unacked>\S+)\s+|)"
     r"(retrans:(?P<retrans>\S+)\s+|)"
+    r"(lost:(?P<lost>\S+)\s+|)"
     r"(rcv_rtt:(?P<rcv_rtt>\S+)\s+|)"
     r"rcv_space:(?P<rcv_space>\S+)\s+"
     r"rcv_ssthresh:(?P<rcv_ssthresh>\S+)\s+"
