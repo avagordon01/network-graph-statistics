@@ -71,6 +71,9 @@ def parse_rtt(rtt_str):
 def parse_bps(bps_str):
     assert(bps_str.endswith('bps'))
     return si_parse(bps_str[:-3])
+def parse_address(addr_str):
+    host, port = addr_str.rsplit(':', 1)
+    return {'host': host, 'port': port}
 
 def main():
     file = open('ss.txt', 'r')
@@ -97,6 +100,12 @@ def main():
                     break
         if not interested:
             continue
+        local_pid = int(users[0]['pid'])
+        peer_pid = None
+        if len(users) > 1:
+            peer_pid = int(users[1]['pid'])
+        local_addr = parse_address(info['local_addr'])
+        peer_addr = parse_address(info['peer_addr'])
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
         rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
         send_bandwidth = parse_bps(details['send'])
