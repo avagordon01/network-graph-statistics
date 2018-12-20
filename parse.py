@@ -106,6 +106,7 @@ def main():
             peer_pid = int(users[1]['pid'])
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
+        #TODO match ports -> PIDs so that processes are a single node
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
         rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
         send_bandwidth = parse_bps(details['send'])
