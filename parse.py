@@ -120,13 +120,7 @@ def main():
         connection['send_bandwidth'] = send_bandwidth
         connections.append(connection)
 
-    edges = []
-    for connection in connections:
-        edge = (connection['local_addr'], connection['peer_addr'], connection)
-        edge[2]['weight'] = connection['rtt_avg']
-        edges.append(edge)
-
-    pickle.dump(edges, open('edges.pickle', 'wb'))
+    pickle.dump(connections, open('connections.pickle', 'wb'))
 
 if __name__ == '__main__':
     main()

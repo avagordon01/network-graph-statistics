@@ -5,7 +5,13 @@ import matplotlib.pyplot as plt
 import pickle
 
 def main():
-    edges = pickle.load(open('edges.pickle', 'rb'))
+    connections = pickle.load(open('connections.pickle', 'rb'))
+
+    edges = []
+    for connection in connections:
+        edge = (connection['local_addr'], connection['peer_addr'], connection)
+        edge[2]['weight'] = connection['rtt_avg']
+        edges.append(edge)
 
     G = nx.Graph()
     G.add_edges_from(edges)
