@@ -7,10 +7,20 @@ import pickle
 def main():
     connections = pickle.load(open('connections.pickle', 'rb'))
 
+    address_pid_map = {}
+    for connection in connections:
+        address_pid_map[connection['local_addr']] = connection['local_pid']
+
     edges = []
     for connection in connections:
+        interested = False
+        for user in connection['users']:
+            interested = user['name'] in ['1', '2', '3', '4', '5', '6']
+            if interested:
+                break
+        if not interested:
+            continue
         edge = (connection['local_addr'], connection['peer_addr'], connection)
-        edge[2]['weight'] = connection['rtt_avg']
         edges.append(edge)
 
     G = nx.Graph()

@@ -75,8 +75,6 @@ def parse_address(addr_str):
     host, port = addr_str.rsplit(':', 1)
     return {'host': host, 'port': port}
 
-address_pid_map = {}
-
 def main():
     file = open('ss.txt', 'r')
     lines = file.readlines()
@@ -93,23 +91,19 @@ def main():
             sys.exit(1)
         details = details_m.groupdict()
         users_str = info['users']
-        interested = False
+        users = None
         if users_str:
             users = parse_users(users_str)
-            for user in users:
-                interested = user['name'] in ['1', '2', '3', '4', '5', '6']
-                if interested:
-                    break
-        if not interested:
+        local_pid = None
+        if not users:
             continue
-        local_pid = int(users[0]['pid'])
+        if len(users) > 0:
+            local_pid = int(users[0]['pid'])
         peer_pid = None
         if len(users) > 1:
             peer_pid = int(users[1]['pid'])
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
-        address_pid_map[info['local_addr']] = local_pid
-        #TODO match ports -> PIDs so that processes are a single node
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
         rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
         send_bandwidth = parse_bps(details['send'])
@@ -118,6 +112,11 @@ def main():
         connection['rtt_avg'] = rtt_avg
         connection['rtt_sd'] = rtt_sd
         connection['send_bandwidth'] = send_bandwidth
+        connection['local_pid'] = local_pid
+        connection['peer_pid'] = peer_pid
+        connection['local_addr_parsed'] = local_addr
+        connection['peer_addr_parsed'] = peer_addr
+        connection['users'] = users
         connections.append(connection)
 
     pickle.dump(connections, open('connections.pickle', 'wb'))
