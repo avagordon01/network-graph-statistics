@@ -10,6 +10,8 @@ def main():
     address_pid_map = {}
     for connection in connections:
         address_pid_map[connection['local_addr']] = connection['local_pid']
+        if connection['peer_addr'] and connection['peer_pid']:
+            address_pid_map[connection['peer_addr']] = connection['peer_pid']
 
     edges = []
     for connection in connections:
@@ -20,7 +22,9 @@ def main():
                 break
         if not interested:
             continue
-        edge = (connection['local_addr'], connection['peer_addr'], connection)
+        local_pid = address_pid_map[connection['local_addr']]
+        peer_pid = address_pid_map[connection['peer_addr']]
+        edge = (local_pid, peer_pid, connection)
         edges.append(edge)
 
     G = nx.Graph()
