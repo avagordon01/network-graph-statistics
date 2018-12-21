@@ -15,6 +15,8 @@ def main():
 
     edges = []
     for connection in connections:
+        #smaller weight = further apart
+        connection['weight'] = 1 / connection['rtt_avg']
         interested = False
         for user in connection['users']:
             interested = user['name'] in ['1', '2', '3', '4', '5', '6']
@@ -31,7 +33,7 @@ def main():
             edge = (local_pid, connection['peer_addr'], connection)
         edges.append(edge)
 
-    G = nx.Graph()
+    G = nx.MultiGraph()
     G.add_edges_from(edges)
 
     pos = nx.layout.spring_layout(G)
