@@ -75,10 +75,12 @@ def parse_address(addr_str):
     host, port = addr_str.rsplit(':', 1)
     return {'host': host, 'port': port}
 
+address_pid_map = {}
+
 def main():
     file = open('ss.txt', 'r')
     lines = file.readlines()
-    edges = []
+    connections = []
     for info_line, details_line in zip(lines[0::2], lines[1::2]):
         info_m = re.match(info_line_re, info_line)
         if not info_m:
@@ -106,15 +108,23 @@ def main():
             peer_pid = int(users[1]['pid'])
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
+        address_pid_map[info['local_addr']] = local_pid
         #TODO match ports -> PIDs so that processes are a single node
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
         rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
         send_bandwidth = parse_bps(details['send'])
         #this merges the two dictionaries into one
-        edge = {**info, **details}
-        edge['weight'] = rtt_avg
-        edge_tuple = (edge['local_addr'], edge['peer_addr'], edge)
-        edges.append(edge_tuple)
+        connection = {**info, **details}
+        connection['rtt_avg'] = rtt_avg
+        connection['rtt_sd'] = rtt_sd
+        connection['send_bandwidth'] = send_bandwidth
+        connections.append(connection)
+
+    edges = []
+    for connection in connections:
+        edge = (connection['local_addr'], connection['peer_addr'], connection)
+        edge[2]['weight'] = connection['rtt_avg']
+        edges.append(edge)
 
     pickle.dump(edges, open('edges.pickle', 'wb'))
 
