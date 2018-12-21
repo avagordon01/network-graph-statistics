@@ -20,11 +20,15 @@ def main():
             interested = user['name'] in ['1', '2', '3', '4', '5', '6']
             if interested:
                 break
+        interested = interested and connection['users']
         if not interested:
             continue
         local_pid = address_pid_map[connection['local_addr']]
-        peer_pid = address_pid_map[connection['peer_addr']]
-        edge = (local_pid, peer_pid, connection)
+        if connection['peer_addr'] in address_pid_map:
+            peer_pid = address_pid_map[connection['peer_addr']]
+            edge = (local_pid, peer_pid, connection)
+        else:
+            edge = (local_pid, connection['peer_addr'], connection)
         edges.append(edge)
 
     G = nx.Graph()
