@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -lt 1 ]; then
     echo "please pass some hosts to connect to"
     exit 1
 fi
