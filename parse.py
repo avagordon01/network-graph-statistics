@@ -70,6 +70,7 @@ def parse_rtt(rtt_str):
     return {'rtt_avg': float(s[0]), 'rtt_std_dev': float(s[1])}
 def parse_bps(bps_str):
     assert(bps_str.endswith('bps'))
+    bps_str = bps_str.replace('K', 'k')
     return si_parse(bps_str[:-3])
 def parse_address(addr_str):
     host, port = addr_str.rsplit(':', 1)
