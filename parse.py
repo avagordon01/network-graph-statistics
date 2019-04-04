@@ -117,6 +117,9 @@ def main():
         peer_pid = None
         if len(users) > 1:
             peer_pid = users[1]['name']
+        if len(users) > 2:
+            print('warning: case not really handled with more than 2 users of a connection')
+            sys.exit(1)
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
