@@ -64,19 +64,16 @@ def parse_info_line(info_line):
     local_addr = info_line[len('ESTAB        0        0           '):len('ESTAB        0        0           127.0.0.1:27677             ')].rstrip()
     peer_addr = info_line[len('ESTAB        0        0           127.0.0.1:27677             '):len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    ')].rstrip()
     users_str = info_line[len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    '):]
-    print(users_str)
     users = []
     if len(users_str) > 0:
         users_strs = (users_str[len('users:(('):-3]).split('),(')
-        print(users_strs)
         for user_str in users_strs:
-            print(user_str)
-            name = user_str.split(',')[0]
-            pid_str = user_str.split(',')[1]
-            fd_str = user_str.split(',')[2]
-            pid = int(pid_str.split('=')[1])
-            fd = int(fd_str.split('=')[1])
-            users.append({'name': name, 'pid': pid, 'fd': fd})
+            m = re.match(user_re, user_str)
+            if not m:
+                print('failed to parse user: {}'.format(user))
+                sys.exit(1)
+            md = m.groupdict()
+            users.append({'name': md['name'], 'pid': int(md['pid']), 'fd': int(md['fd'])})
     return {
         'state': state,
         'recv_q': recv_q,
@@ -85,17 +82,6 @@ def parse_info_line(info_line):
         'peer_addr': peer_addr,
         'users': users
     }
-
-
-def parse_users(users):
-    ms = []
-    for user in users[1:-1].split('),('):
-        m = re.match(user_re, user)
-        if not m:
-            print('failed to parse user: {}'.format(user))
-            sys.exit(1)
-        ms.append(m.groupdict())
-    return ms
 
 def parse_rtt(rtt_str):
     s = rtt_str.split('/')
