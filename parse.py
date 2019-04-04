@@ -101,8 +101,7 @@ def parse_details_line(details_line):
         sys.exit(1)
     return details_m.groupdict()
 
-def main():
-    file = open('ss.txt', 'r')
+def parse(file):
     lines = file.readlines()
     connections = []
     for info_line, details_line in zip(lines[0::2], lines[1::2]):
@@ -136,7 +135,10 @@ def main():
         connection['peer_addr_parsed'] = peer_addr
         connection['users'] = users
         connections.append(connection)
+    return connections
 
+def main():
+    connections = parse(open('ss.txt', 'r'))
     pickle.dump(connections, open('connections.pickle', 'wb'))
 
 if __name__ == '__main__':
