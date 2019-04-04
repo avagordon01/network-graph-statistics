@@ -108,17 +108,20 @@ def parse_address(addr_str):
     host, port = addr_str.rsplit(':', 1)
     return {'host': host, 'port': port}
 
+def parse_details_line(details_line):
+    details_m = re.match(details_line_re, details_line)
+    if not details_m:
+        print('failed to parse details line: {}'.format(details_line))
+        sys.exit(1)
+    return details_m.groupdict()
+
 def main():
     file = open('ss.txt', 'r')
     lines = file.readlines()
     connections = []
     for info_line, details_line in zip(lines[0::2], lines[1::2]):
         info = parse_info_line(info_line)
-        details_m = re.match(details_line_re, details_line)
-        if not details_m:
-            print('failed to parse details line: {}'.format(details_line))
-            sys.exit(1)
-        details = details_m.groupdict()
+        details = parse_details_line(details_line)
         users = info['users']
         local_pid = None
         if not users:
