@@ -6,12 +6,12 @@ import pickle
 from si_prefix import si_parse
 
 info_line_re = re.compile(
-    r"(?P<state>\S{1,1})\s*"
+    r"(?P<state>\S{1,13})\s*"
     r"(?P<recv_q>\S+)\s+"
     r"(?P<send_q>\S+)\s+"
     r"(?P<local_addr>\S+)\s+"
     r"(?P<peer_addr>\S+)\s+"
-    r"(users:\((?P<users>\S+)\)|)\s+"
+    r"(users:\((?P<users>[^)]+)\)|)\s+"
 )
 
 details_line_re = re.compile(
@@ -26,6 +26,7 @@ details_line_re = re.compile(
     r"advmss:(?P<advmss>\S+)\s+"
     r"cwnd:(?P<cwnd>\S+)\s+"
     r"(ssthresh:(?P<ssthresh>\S+)\s+|)"
+    r"(bytes_sent:(?P<bytes_sent>\S+)\s+|)"
     r"(bytes_acked:(?P<bytes_acked>\S+)\s+|)"
     r"(bytes_received:(?P<bytes_received>\S+)\s+|)"
     r"(segs_out:(?P<segs_out>\S+)\s+|)"
@@ -38,6 +39,7 @@ details_line_re = re.compile(
     r"(lastack:(?P<lastack>\S+)\s+|)"
     r"(pacing_rate (?P<pacing_rate>\S+)\s+|)"
     r"(delivery_rate (?P<delivery_rate>\S+)\s+|)"
+    r"(delivered:(?P<delivered>\S+)\s+|)"
     r"(?P<app_limited>app_limited\s+|)"
     r"(busy:(?P<busy>\S+)\s+|)"
     r"(rwnd_limited:(?P<rwnd_limited>\S+)\s+|)"
@@ -55,6 +57,36 @@ details_line_re = re.compile(
 user_re = re.compile(
     r'"(?P<name>[^"]+)",pid=(?P<pid>\w+),fd=(?P<fd>\w+)'
 )
+def parse_info_line(info_line):
+    state = info_line[:len('ESTAB        ')].rstrip()
+    recv_q = info_line[len('ESTAB        '):len('ESTAB        0        ')].rstrip()
+    send_q = info_line[len('ESTAB        0        '):len('ESTAB        0        0           ')].rstrip()
+    local_addr = info_line[len('ESTAB        0        0           '):len('ESTAB        0        0           127.0.0.1:27677             ')].rstrip()
+    peer_addr = info_line[len('ESTAB        0        0           127.0.0.1:27677             '):len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    ')].rstrip()
+    users_str = info_line[len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    '):]
+    print(users_str)
+    users = []
+    if len(users_str) > 0:
+        users_strs = (users_str[len('users:(('):-3]).split('),(')
+        print(users_strs)
+        for user_str in users_strs:
+            print(user_str)
+            name = user_str.split(',')[0]
+            pid_str = user_str.split(',')[1]
+            fd_str = user_str.split(',')[2]
+            pid = int(pid_str.split('=')[1])
+            fd = int(fd_str.split('=')[1])
+            users.append({'name': name, 'pid': pid, 'fd': fd})
+    return {
+        'state': state,
+        'recv_q': recv_q,
+        'send_q': send_q,
+        'local_addr': local_addr,
+        'peer_addr': peer_addr,
+        'users': users
+    }
+
+
 def parse_users(users):
     ms = []
     for user in users[1:-1].split('),('):
@@ -81,28 +113,21 @@ def main():
     lines = file.readlines()
     connections = []
     for info_line, details_line in zip(lines[0::2], lines[1::2]):
-        info_m = re.match(info_line_re, info_line)
-        if not info_m:
-            print('failed to parse info line: {}'.format(info_line))
-            sys.exit(1)
-        info = info_m.groupdict()
+        info = parse_info_line(info_line)
         details_m = re.match(details_line_re, details_line)
         if not details_m:
             print('failed to parse details line: {}'.format(details_line))
             sys.exit(1)
         details = details_m.groupdict()
-        users_str = info['users']
-        users = None
-        if users_str:
-            users = parse_users(users_str)
+        users = info['users']
         local_pid = None
         if not users:
             continue
         if len(users) > 0:
-            local_pid = int(users[0]['pid'])
+            local_pid = users[0]['name']
         peer_pid = None
         if len(users) > 1:
-            peer_pid = int(users[1]['pid'])
+            peer_pid = users[1]['name']
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
