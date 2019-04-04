@@ -2,7 +2,7 @@
 
 import sys
 import re
-import pickle
+import json
 from si_prefix import si_parse
 
 info_line_re = re.compile(
@@ -109,11 +109,9 @@ def parse(file):
         details = parse_details_line(details_line)
         users = info['users']
         local_pid = None
-        if not users:
-            continue
+        peer_pid = None
         if len(users) > 0:
             local_pid = users[0]['name']
-        peer_pid = None
         if len(users) > 1:
             peer_pid = users[1]['name']
         if len(users) > 2:
@@ -137,9 +135,38 @@ def parse(file):
         connections.append(connection)
     return connections
 
+def graph(connections):
+    address_pid_map = {}
+    for connection in connections:
+        address_pid_map[connection['local_addr']] = connection['local_pid']
+        if connection['peer_addr'] and connection['peer_pid']:
+            address_pid_map[connection['peer_addr']] = connection['peer_pid']
+
+    nodes = []
+    edges = []
+    for connection in connections:
+        #smaller weight = further apart
+        connection['weight'] = 1 / connection['rtt_avg']
+        if not connection['users']:
+            continue
+        local_pid = address_pid_map[connection['local_addr']]
+        if connection['peer_addr'] in address_pid_map:
+            peer_pid = address_pid_map[connection['peer_addr']]
+            edges.append({'source': str(local_pid), 'target': str(peer_pid), **connection})
+            nodes.append({'id': str(peer_pid)})
+        else:
+            edges.append({'source': str(local_pid), 'target': connection['peer_addr'], **connection})
+            nodes.append({'id': str(connection['peer_addr'])})
+        nodes.append({'id': str(local_pid), **connection['users'][0]})
+
+    json_graph = {'nodes': nodes, 'links': edges}
+    return json_graph
+
 def main():
     connections = parse(open('ss.txt', 'r'))
-    pickle.dump(connections, open('connections.pickle', 'wb'))
+    json_graph = graph(connections)
+    with open('data.json', 'w') as outfile:
+        json.dump(json_graph, outfile)
 
 if __name__ == '__main__':
     main()
