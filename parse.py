@@ -58,14 +58,19 @@ user_re = re.compile(
     r'"(?P<name>[^"]+)",pid=(?P<pid>\w+),fd=(?P<fd>\w+)'
 )
 def parse_info_line(info_line):
-    state = info_line[:len('ESTAB        ')].rstrip()
-    recv_q = info_line[len('ESTAB        '):len('ESTAB        0        ')].rstrip()
-    send_q = info_line[len('ESTAB        0        '):len('ESTAB        0        0           ')].rstrip()
-    local_addr = info_line[len('ESTAB        0        0           '):len('ESTAB        0        0           127.0.0.1:27677             ')].rstrip()
-    peer_addr = info_line[len('ESTAB        0        0           127.0.0.1:27677             '):len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    ')].rstrip()
-    users_str = info_line[len('ESTAB        0        0           127.0.0.1:27677             127.0.0.1:58404    '):]
+    parts = info_line.split(maxsplit=5)
+    if not (5 <= len(parts) <= 6):
+        print('failed to parse info_line, wrong number of whitespace breaks')
+        print('>>' + info_line + '<<')
+        sys.exit(1)
+    state = parts[0]
+    recv_q = int(parts[1])
+    send_q = int(parts[2])
+    local_addr = parts[3]
+    peer_addr = parts[4]
     users = []
-    if len(users_str) > 0:
+    if len(parts) == 6:
+        users_str = parts[5]
         users_strs = (users_str[len('users:(('):-3]).split('),(')
         for user_str in users_strs:
             m = re.match(user_re, user_str)
