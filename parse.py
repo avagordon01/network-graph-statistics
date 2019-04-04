@@ -113,62 +113,63 @@ def parse(file):
         info = parse_info_line(info_line)
         details = parse_details_line(details_line)
         users = info['users']
-        local_pid = None
-        peer_pid = None
-        if len(users) > 0:
-            local_pid = users[0]['name']
-        if len(users) > 1:
-            peer_pid = users[1]['name']
-        if len(users) > 2:
-            print('warning: case not really handled with more than 2 users of a connection')
-            sys.exit(1)
         local_addr = parse_address(info['local_addr'])
         peer_addr = parse_address(info['peer_addr'])
         rtt_avg = parse_rtt(details['rtt'])['rtt_avg']
         rtt_sd = parse_rtt(details['rtt'])['rtt_std_dev']
         send_bandwidth = parse_bps(details['send'])
-        #this merges the two dictionaries into one
         connection = {**info, **details}
         connection['rtt_avg'] = rtt_avg
         connection['rtt_sd'] = rtt_sd
         connection['send_bandwidth'] = send_bandwidth
-        connection['local_pid'] = local_pid
-        connection['peer_pid'] = peer_pid
         connection['local_addr_parsed'] = local_addr
         connection['peer_addr_parsed'] = peer_addr
-        connection['users'] = users
         connections.append(connection)
     return connections
 
-def graph(connections):
-    address_pid_map = {}
+def mapping(connections):
+    globally_unique_pid_map = {}
     for connection in connections:
-        address_pid_map[connection['local_addr']] = connection['local_pid']
-        if connection['peer_addr'] and connection['peer_pid']:
-            address_pid_map[connection['peer_addr']] = connection['peer_pid']
+        users = connection['users']
+        if len(users) > 0:
+            globally_unique_pid = '{}@{}'.format(users[0]['pid'], connection['local_addr_parsed']['host'])
+            address = connection['local_addr']
+            globally_unique_pid_map[address] = globally_unique_pid
+            connection['local_pid'] = globally_unique_pid
+    for connection in connections:
+        peer_address = connection['peer_addr']
+        if peer_address in globally_unique_pid_map:
+            globally_unique_peer_pid = globally_unique_pid_map[peer_address]
+            connection['peer_pid'] = globally_unique_peer_pid
 
-    nodes = []
-    edges = []
-    for connection in connections:
+def upsert(map, object):
+    if object['id'] in map:
+        object = {**object, **map[object['id']]}
+    map[object['id']] = object
+
+def graph(raw_connections):
+    processes = {}
+    connections = []
+    for connection in raw_connections:
         #smaller weight = further apart
         connection['weight'] = 1 / connection['rtt_avg']
-        if not connection['users']:
-            continue
-        local_pid = address_pid_map[connection['local_addr']]
-        if connection['peer_addr'] in address_pid_map:
-            peer_pid = address_pid_map[connection['peer_addr']]
-            edges.append({'source': str(local_pid), 'target': str(peer_pid), **connection})
-            nodes.append({'id': str(peer_pid)})
-        else:
-            edges.append({'source': str(local_pid), 'target': connection['peer_addr'], **connection})
-            nodes.append({'id': str(connection['peer_addr'])})
-        nodes.append({'id': str(local_pid), **connection['users'][0]})
+        if 'local_pid' in connection and 'peer_pid' in connection:
+            connections.append({'source': connection['local_pid'], 'target': connection['peer_pid'], **connection})
+            if len(connection['users']) > 0:
+                name = connection['users'][0]['name']
+            else:
+                name = connection['local_pid']
+            process = {'id': connection['local_pid'], 'name': name}
+            upsert(processes, process)
+            process = {'id': connection['peer_pid']}
+            upsert(processes, process)
 
-    json_graph = {'nodes': nodes, 'links': edges}
+    json_graph = {'nodes': list(processes.values()), 'links': connections}
     return json_graph
 
 def main():
     connections = parse(open('ss.txt', 'r'))
+    mapping(connections)
     json_graph = graph(connections)
     with open('data.json', 'w') as outfile:
         json.dump(json_graph, outfile)
